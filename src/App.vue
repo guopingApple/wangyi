@@ -26,6 +26,7 @@
 					</marquee>
 					
 					<panel :list ='datalist'></panel>
+					<panel :list ='moredatalist'></panel>
 					
 				</scroller>
 				
@@ -54,15 +55,17 @@
 import { ViewBox,XHeader,Tabbar, TabbarItem,Tab, TabItem,Scroller as sc,Swiper,Marquee, MarqueeItem,Panel} from 'vux'
 var refreshKey = ['A','B01','B02','B03','B04','B05','B06','B07','B08','B09']
 var key = 0;
+var keyValue = 'A';
+var start = 0;
+var end = start + 9;
+var initLoaded = false;
+
 function getRefreshKey(){
-	var keyValue = refreshKey[key];
 	key++;
 	if(key == refreshKey.length){
-		console.log(refreshKey.length);
-		console.log(keyValue);
-		key = 0;
+			key = 0;
 	}
-	return keyValue;
+	keyValue = refreshKey[key];
 }
 export default {
   name: 'app',
@@ -79,7 +82,7 @@ export default {
   created(){
   	// http://3g.163.com/touch/jsonp/sy/recommend/0-9.html
   	this.$jsonp('http://3g.163.com/touch/jsonp/sy/recommend/0-9.html').then( data => {
-		console.log(data);
+//		console.log(data);
 
 			// 轮播图的数据
 			this.swiperList = data.focus.filter(item=>{
@@ -113,6 +116,8 @@ export default {
 				}
 			})
 			
+			initLoaded = true;
+			
   	})
   },
   data(){
@@ -121,7 +126,8 @@ export default {
   		swiperList:[],
 			swiperItemIndex :0,
       datalist: [],
-      marqueelist:[]
+      marqueelist:[],
+      moredatalist:[]
   	}
   	
   },
@@ -129,9 +135,10 @@ export default {
   	refresh(){
 //		console.log(1);
 			//下拉数据刷新
+			getRefreshKey();
 			this.$jsonp('http://3g.163.com/touch/jsonp/sy/recommend/0-9.html',{
 				miss:'00',
-				refresh:getRefreshKey()
+				refresh:keyValue
 			}).then( data => {
 //				console.log(data)
 
@@ -148,13 +155,42 @@ export default {
 					});
 					
 					this.$refs.myRef.finishPullToRefresh();
-					
+//					this.$vux.toast.show('hello');
+//					console.log(this.datalist.length);
+					this.$vux.toast.text('当前一共刷新了'+this.datalist.length+'条数据','top');
 			})
-			
   	},
   	infinite(){
+  		
+  		if (!initLoaded) {
+  			
+  			return;
+  		}
+  		
 //		console.log(2);
-			
+			// http://3g.163.com/touch/jsonp/sy/recommend/+ start+'-'+end+'.html'
+			this.$jsonp('http://3g.163.com/touch/jsonp/sy/recommend/+ '+start+'-'+end+'.html',{
+				miss:'00',
+			}).then(data=>{
+				
+				
+				//下拉刷新
+				
+				start +=10;
+				end = start +9;
+				
+				this.moredatalist = data.list.filter(item=>{
+						return item.addata ===null && item.picInfo[0];
+					}).map(item =>{
+						return{
+							src:item.picInfo[0].url,
+							title:item.title,
+							desc:item.digest,
+							url:item.link
+						}
+					});
+				
+			})
   	}
   }
 }
@@ -182,5 +218,6 @@ export default {
 	.loading-layer{
 		padding-bottom: 90px;
 	}
+	.weui-media-box_appmsg .weui-media-box__thumb{width:60px;height: 60px;}
 }
 </style>
