@@ -86,7 +86,7 @@ export default {
 
 			// 轮播图的数据
 			this.swiperList = data.focus.filter(item=>{
-				return item.addata ===null;
+				return item.addata ===null&& item.picInfo[0];
 			}).map(item =>{
 				return{
 					url:item.link,
@@ -97,7 +97,7 @@ export default {
 			
 			//滚动新闻数据
 			this.marqueelist = data.live.filter(item=>{
-				return item.addata ===null;
+				return item.addata ===null&& item.picInfo[0];
 			}).map(item =>{
 				return{
 					title:item.title,
@@ -106,7 +106,7 @@ export default {
 			
 			//首屏新闻列表的数据
 			this.datalist = data.list.filter(item=>{
-				return item.addata ===null;
+				return item.addata ===null&& item.picInfo[0];
 			}).map(item =>{
 				return{
 					src:item.picInfo[0].url,
@@ -144,7 +144,7 @@ export default {
 
 					//刷新首屏新闻列表的数据
 					this.datalist = data.list.filter(item=>{
-						return item.addata ===null;
+						return item.addata ===null&& item.picInfo[0];
 					}).map(item =>{
 						return{
 							src:item.picInfo[0].url,
@@ -161,25 +161,22 @@ export default {
 			})
   	},
   	infinite(){
-  		
+//		console.log(initLoaded);
   		if (!initLoaded) {
-  			
+  			this.$refs.myRef.finishInfinite();
   			return;
   		}
-  		
-//		console.log(2);
-			// http://3g.163.com/touch/jsonp/sy/recommend/+ start+'-'+end+'.html'
-			this.$jsonp('http://3g.163.com/touch/jsonp/sy/recommend/+ '+start+'-'+end+'.html',{
+//		console.log(initLoaded);
+//			console.log(2);
+			
+			// 'http://3g.163.com/touch/jsonp/sy/recommend/'+ start + '-'+ end +'.html'
+			this.$jsonp('http://3g.163.com/touch/jsonp/sy/recommend/'+ start + '-'+ end +'.html',{
 				miss:'00',
+				refresh:keyValue
 			}).then(data=>{
-				
-				
 				//下拉刷新
-				
-				start +=10;
-				end = start +9;
-				
-				this.moredatalist = data.list.filter(item=>{
+				console.log('http://3g.163.com/touch/jsonp/sy/recommend/'+ start + '-'+ end +'.html');
+				var dataList = data.list.filter(item=>{
 						return item.addata ===null && item.picInfo[0];
 					}).map(item =>{
 						return{
@@ -189,7 +186,13 @@ export default {
 							url:item.link
 						}
 					});
+				this.moredatalist = this.moredatalist.concat(dataList);
 				
+				start +=10;
+				end = start +9;
+//				
+				this.$refs.myRef.finishInfinite();
+//				
 			})
   	}
   }
@@ -212,7 +215,7 @@ export default {
   height: 100%;
 
 	.vux-header{position: absolute;width: 100%;left: 0;top: 0;}
-	.tab{width: 600px;margin-top: 46px;}
+	.tab{width: 100%;margin-top: 46px;}
 	.my-marquee{margin-top: 10px;}
 	.my-scroller{top: 90px;}
 	.loading-layer{
